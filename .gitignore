@@ -1,0 +1,9 @@
+.claude/
+node_modules/
+data/
+*.db
+.env
+.DS_Store
+dist/
+server/public/
+frontend/dist/

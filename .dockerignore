@@ -1,0 +1,9 @@
+node_modules/
+data/
+*.db
+.env
+.DS_Store
+frontend/node_modules/
+server/node_modules/
+server/public/
+frontend/dist/

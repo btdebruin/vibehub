@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  vibehub:
+    build: .
+    container_name: vibehub
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/data
+      - PORT=3004
