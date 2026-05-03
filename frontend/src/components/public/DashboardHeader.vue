@@ -1,17 +1,19 @@
 <template>
   <header class="header">
     <div class="header-inner">
-      <div class="flex items-center gap-2">
-        <div class="logo-mark">V</div>
+      <div class="header-brand">
+        <img src="/hermes-logo.png" alt="Hermes" class="logo-mark" />
         <span class="text-zinc-100 font-semibold text-lg tracking-tight">Hermes</span>
       </div>
 
-      <SegmentedControl
-        :items="[{ label: 'Internal', value: 'internal' }, { label: '9to5', value: '9to5' }, { label: 'External', value: 'external' }]"
-        v-model="tabStore.activeTab"
-      />
+      <div class="header-tabs">
+        <SegmentedControl
+          :items="[{ label: 'Internal', value: 'internal' }, { label: '9to5', value: '9to5' }, { label: 'External', value: 'external' }]"
+          v-model="tabStore.activeTab"
+        />
+      </div>
 
-      <div class="flex items-center gap-3">
+      <div class="header-actions">
         <SearchTrigger />
         <RouterLink to="/admin" class="admin-toggle" title="Admin">
           <Settings :size="18" />
@@ -40,13 +42,72 @@ const tabStore = useTabStore();
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Mobile: wrap brand+actions on first row, tabs full-width below */
 .header-inner {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0.875rem 1.5rem;
+  padding: 0.75rem 1rem 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.header-brand {
+  order: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.header-actions {
+  order: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.header-tabs {
+  order: 3;
+  width: 100%;
+}
+
+.header-tabs :deep(.segmented) {
+  width: 100%;
+}
+
+.header-tabs :deep(.seg-btn) {
+  flex: 1;
+  text-align: center;
+}
+
+/* Desktop: single row with tabs centred */
+@media (min-width: 640px) {
+  .header-inner {
+    flex-wrap: nowrap;
+    padding: 0.875rem 1.5rem;
+    gap: 0;
+    justify-content: space-between;
+  }
+
+  .header-tabs {
+    order: 2;
+    width: auto;
+  }
+
+  .header-actions {
+    order: 3;
+    margin-left: 0;
+  }
+
+  .header-tabs :deep(.segmented) {
+    width: auto;
+  }
+
+  .header-tabs :deep(.seg-btn) {
+    flex: 0;
+  }
 }
 
 .admin-toggle {
@@ -55,7 +116,7 @@ const tabStore = useTabStore();
   justify-content: center;
   color: rgb(113 113 122);
   transition: color 0.15s;
-  padding: 0.25rem;
+  padding: 0.375rem;
   border-radius: 6px;
 }
 
@@ -66,13 +127,8 @@ const tabStore = useTabStore();
 .logo-mark {
   width: 30px;
   height: 30px;
-  background: linear-gradient(135deg, #6366F1, #8B5CF6);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 0.875rem;
+  border-radius: 7px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 </style>

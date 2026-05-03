@@ -10,13 +10,19 @@
 
 <style scoped>
 .palette-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.75rem;
-  color: #52525B;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .palette-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.75rem;
+    color: #52525B;
+  }
 }
 
 .dot {

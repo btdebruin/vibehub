@@ -59,10 +59,17 @@ onMounted(() => {
 .dashboard-main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .dashboard-main {
+    padding: 2rem 1.5rem;
+    gap: 0.75rem;
+  }
 }
 
 .skeleton-card {

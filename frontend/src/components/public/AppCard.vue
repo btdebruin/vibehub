@@ -3,13 +3,13 @@
     <AppLogo :logo-path="app.logo_path" :name="app.name" :size="36" />
 
     <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-baseline justify-between gap-4 flex-1 min-w-0">
+      <div class="flex items-start sm:items-center justify-between gap-2">
+        <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-baseline sm:gap-4">
           <h2 class="text-base font-semibold text-zinc-100 flex-shrink-0">{{ app.name }}</h2>
-          <p class="text-sm text-zinc-400">{{ app.functionality }}</p>
+          <p class="text-sm text-zinc-400 truncate">{{ app.functionality }}</p>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <div v-if="app.tags?.length" class="flex items-center gap-1">
+        <div class="flex items-center gap-2 flex-shrink-0 self-center">
+          <div v-if="app.tags?.length" class="hidden sm:flex items-center gap-1">
             <span v-for="tag in app.tags" :key="tag" class="tag-chip">{{ tag }}</span>
           </div>
           <a

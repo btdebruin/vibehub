@@ -18,13 +18,25 @@ const store = useCommandPaletteStore();
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
   cursor: pointer;
   transition: all 150ms ease-out;
   color: #A1A1AA;
+  min-width: 40px;
+  min-height: 40px;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .search-trigger {
+    padding: 0.375rem 0.75rem;
+    min-width: unset;
+    min-height: unset;
+    justify-content: flex-start;
+  }
 }
 
 .search-trigger:hover {

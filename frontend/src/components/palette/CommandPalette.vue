@@ -107,9 +107,7 @@ async function scrollToSelected() {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 15vh;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding: max(0.75rem, env(safe-area-inset-top, 0.75rem)) 0.75rem 0.75rem;
 }
 
 .palette-modal {
@@ -125,7 +123,17 @@ async function scrollToSelected() {
     0 8px 24px rgba(99, 102, 241, 0.1);
   display: flex;
   flex-direction: column;
-  max-height: 60vh;
+  max-height: 80dvh;
+}
+
+@media (min-width: 640px) {
+  .palette-overlay {
+    padding: 15vh 1rem 1rem;
+  }
+
+  .palette-modal {
+    max-height: 60vh;
+  }
 }
 
 .palette-body {
