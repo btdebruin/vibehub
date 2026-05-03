@@ -17,6 +17,10 @@ const routes = [
     path: '/admin/apps/:id',
     component: () => import('../pages/AdminAppFormPage.vue'),
   },
+  {
+    path: '/apps/:id/notes',
+    component: () => import('../pages/NotesPage.vue'),
+  },
 ];
 
 export default createRouter({

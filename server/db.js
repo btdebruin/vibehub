@@ -47,4 +47,10 @@ try {
   // column already exists
 }
 
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN notes TEXT NOT NULL DEFAULT ''`);
+} catch {
+  // column already exists
+}
+
 export default db;

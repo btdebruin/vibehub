@@ -71,6 +71,15 @@ export const useAppsStore = defineStore('apps', () => {
     return apps.value.find((a) => a.id === id);
   }
 
+  async function fetchNotes(id) {
+    const data = await apiFetch('GET', `/api/apps/${id}/notes`);
+    return data.notes;
+  }
+
+  async function saveNotes(id, notes) {
+    await apiFetch('PUT', `/api/apps/${id}/notes`, { notes });
+  }
+
   return {
     apps,
     loading,
@@ -83,5 +92,7 @@ export const useAppsStore = defineStore('apps', () => {
     deleteApp,
     reorderApps,
     getAppById,
+    fetchNotes,
+    saveNotes,
   };
 });

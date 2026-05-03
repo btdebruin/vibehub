@@ -134,6 +134,24 @@ router.delete('/admin/apps/:id/logo', async (req, res) => {
   res.json(parseApp(app));
 });
 
+// GET /api/apps/:id/notes — get notes for an app
+router.get('/apps/:id/notes', (req, res) => {
+  const { id } = req.params;
+  const app = db.prepare('SELECT id, notes FROM apps WHERE id = ?').get(id);
+  if (!app) return res.status(404).json({ error: 'App not found' });
+  res.json({ notes: app.notes || '' });
+});
+
+// PUT /api/apps/:id/notes — save notes for an app
+router.put('/apps/:id/notes', (req, res) => {
+  const { id } = req.params;
+  const { notes } = req.body;
+  const existing = db.prepare('SELECT id FROM apps WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'App not found' });
+  db.prepare(`UPDATE apps SET notes = ?, updated_at = datetime('now') WHERE id = ?`).run(notes ?? '', id);
+  res.json({ notes: notes ?? '' });
+});
+
 // DELETE /api/admin/apps/:id — delete app + logo
 router.delete('/admin/apps/:id', async (req, res) => {
   const { id } = req.params;

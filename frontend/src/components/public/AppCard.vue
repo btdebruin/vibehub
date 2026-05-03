@@ -23,6 +23,13 @@
           >
             <Github :size="18" />
           </a>
+          <button
+            class="text-zinc-500 hover:text-zinc-300 transition-colors p-1 rounded"
+            title="Notes"
+            @click.stop="openNotes"
+          >
+            <NotebookPen :size="18" />
+          </button>
           <span class="text-zinc-600 group-hover:text-zinc-400 transition-colors">
             <ArrowUpRight :size="18" />
           </span>
@@ -33,8 +40,11 @@
 </template>
 
 <script setup>
-import { Github, ArrowUpRight } from 'lucide-vue-next';
+import { Github, ArrowUpRight, NotebookPen } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 import AppLogo from './AppLogo.vue';
+
+const router = useRouter();
 
 const props = defineProps({
   app: { type: Object, required: true },
@@ -42,6 +52,10 @@ const props = defineProps({
 
 function openApp() {
   window.open(props.app.app_url, '_blank', 'noopener,noreferrer');
+}
+
+function openNotes() {
+  router.push(`/apps/${props.app.id}/notes`);
 }
 </script>
 
