@@ -3,15 +3,31 @@
     <div class="header-inner">
       <div class="flex items-center gap-2">
         <div class="logo-mark">V</div>
-        <span class="text-zinc-100 font-semibold text-lg tracking-tight">Vibehub</span>
+        <span class="text-zinc-100 font-semibold text-lg tracking-tight">Hermes</span>
       </div>
-      <SearchTrigger />
+
+      <SegmentedControl
+        :items="[{ label: 'Internal', value: 'internal' }, { label: '9to5', value: '9to5' }, { label: 'External', value: 'external' }]"
+        v-model="tabStore.activeTab"
+      />
+
+      <div class="flex items-center gap-3">
+        <SearchTrigger />
+        <RouterLink to="/admin" class="admin-toggle" title="Admin">
+          <Settings :size="18" />
+        </RouterLink>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup>
+import { Settings } from 'lucide-vue-next';
 import SearchTrigger from './SearchTrigger.vue';
+import SegmentedControl from './SegmentedControl.vue';
+import { useTabStore } from '../../stores/tab.js';
+
+const tabStore = useTabStore();
 </script>
 
 <style scoped>
@@ -31,6 +47,20 @@ import SearchTrigger from './SearchTrigger.vue';
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(113 113 122);
+  transition: color 0.15s;
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.admin-toggle:hover {
+  color: rgb(212 212 216);
 }
 
 .logo-mark {

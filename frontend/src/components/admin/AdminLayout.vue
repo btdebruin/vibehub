@@ -4,7 +4,7 @@
       <div class="admin-header-inner">
         <div class="flex items-center gap-2">
           <div class="logo-mark">V</div>
-          <span class="text-zinc-100 font-semibold text-lg tracking-tight">Vibehub Admin</span>
+          <span class="text-zinc-100 font-semibold text-lg tracking-tight">Hermes Admin</span>
         </div>
         <RouterLink to="/" class="back-link">
           <ArrowLeft :size="16" />

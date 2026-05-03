@@ -27,4 +27,24 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_apps_order ON apps(display_order);
 `);
 
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN is_external INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN app_group TEXT NOT NULL DEFAULT 'internal'`);
+  // migrate existing is_external data
+  db.exec(`UPDATE apps SET app_group = 'external' WHERE is_external = 1`);
+} catch {
+  // column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'`);
+} catch {
+  // column already exists
+}
+
 export default db;

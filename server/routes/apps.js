@@ -11,15 +11,19 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', '..', 'data'
 
 const router = Router();
 
+function parseApp(app) {
+  return { ...app, tags: JSON.parse(app.tags || '[]') };
+}
+
 // GET /api/apps — list all apps sorted by display_order
 router.get('/apps', (req, res) => {
   const apps = db.prepare('SELECT * FROM apps ORDER BY display_order ASC, created_at ASC').all();
-  res.json(apps);
+  res.json(apps.map(parseApp));
 });
 
 // POST /api/admin/apps — create app (multipart, optional logo)
 router.post('/admin/apps', upload.single('logo'), (req, res) => {
-  const { name, functionality, app_url, github_url } = req.body;
+  const { name, functionality, app_url, github_url, app_group, tags } = req.body;
 
   if (!name || !functionality || !app_url) {
     if (req.file) {
@@ -32,14 +36,16 @@ router.post('/admin/apps', upload.single('logo'), (req, res) => {
   const maxOrder = db.prepare('SELECT MAX(display_order) as max FROM apps').get();
   const display_order = (maxOrder.max ?? -1) + 1;
   const logo_path = req.file ? req.file.filename : null;
+  const group = ['internal', '9to5', 'external'].includes(app_group) ? app_group : 'internal';
+  const tagsJson = JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'));
 
   db.prepare(`
-    INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(id, name, functionality, app_url, github_url || null, logo_path, display_order);
+    INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order, app_group, tags)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson);
 
   const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
-  res.status(201).json(app);
+  res.status(201).json(parseApp(app));
 });
 
 // PUT /api/admin/apps/order — update display order (must be before /:id)
@@ -62,14 +68,21 @@ router.put('/admin/apps/order', (req, res) => {
 // PUT /api/admin/apps/:id — update app metadata
 router.put('/admin/apps/:id', (req, res) => {
   const { id } = req.params;
-  const { name, functionality, app_url, github_url } = req.body;
+  const { name, functionality, app_url, github_url, app_group, tags } = req.body;
 
   const existing = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'App not found' });
 
+  const group = ['internal', '9to5', 'external'].includes(app_group)
+    ? app_group
+    : existing.app_group;
+  const tagsJson = tags !== undefined
+    ? JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'))
+    : existing.tags;
+
   db.prepare(`
     UPDATE apps SET
-      name = ?, functionality = ?, app_url = ?, github_url = ?,
+      name = ?, functionality = ?, app_url = ?, github_url = ?, app_group = ?, tags = ?,
       updated_at = datetime('now')
     WHERE id = ?
   `).run(
@@ -77,11 +90,13 @@ router.put('/admin/apps/:id', (req, res) => {
     functionality ?? existing.functionality,
     app_url ?? existing.app_url,
     github_url !== undefined ? (github_url || null) : existing.github_url,
+    group,
+    tagsJson,
     id,
   );
 
   const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
-  res.json(app);
+  res.json(parseApp(app));
 });
 
 // PUT /api/admin/apps/:id/logo — upload/replace logo
@@ -100,7 +115,7 @@ router.put('/admin/apps/:id/logo', upload.single('logo'), async (req, res) => {
     .run(req.file.filename, id);
 
   const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
-  res.json(app);
+  res.json(parseApp(app));
 });
 
 // DELETE /api/admin/apps/:id/logo — remove logo
@@ -116,7 +131,7 @@ router.delete('/admin/apps/:id/logo', async (req, res) => {
 
   db.prepare(`UPDATE apps SET logo_path = NULL, updated_at = datetime('now') WHERE id = ?`).run(id);
   const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
-  res.json(app);
+  res.json(parseApp(app));
 });
 
 // DELETE /api/admin/apps/:id — delete app + logo

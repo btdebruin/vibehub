@@ -52,6 +52,30 @@
       <p v-if="githubUrlError" class="error-msg">Please enter a valid URL (http/https)</p>
     </div>
 
+    <!-- Tags -->
+    <div class="form-group">
+      <label class="form-label">Tags <span class="label-optional">optional</span></label>
+      <TagInput v-model="form.tags" :suggestions="tagSuggestions" />
+      <p class="form-hint">Enter to confirm · Backspace to remove</p>
+    </div>
+
+    <!-- Group -->
+    <div class="form-group">
+      <label class="form-label">Group</label>
+      <div class="group-picker">
+        <button
+          v-for="opt in groupOptions"
+          :key="opt.value"
+          type="button"
+          class="group-btn"
+          :class="{ active: form.app_group === opt.value }"
+          @click="form.app_group = opt.value"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+    </div>
+
     <!-- Logo -->
     <div class="form-group">
       <LogoUploadField
@@ -85,9 +109,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { Trash2 } from 'lucide-vue-next';
 import LogoUploadField from './LogoUploadField.vue';
+import TagInput from './TagInput.vue';
+import { useAppsStore } from '../../stores/apps.js';
 
 const props = defineProps({
   existingApp: { type: Object, default: null },
@@ -96,11 +122,27 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'delete', 'logo-remove']);
 
+const appsStore = useAppsStore();
+
+const tagSuggestions = computed(() => {
+  const all = new Set();
+  appsStore.apps.forEach((a) => (a.tags || []).forEach((t) => all.add(t)));
+  return [...all].sort();
+});
+
+const groupOptions = [
+  { label: 'Internal', value: 'internal' },
+  { label: '9to5', value: '9to5' },
+  { label: 'External', value: 'external' },
+];
+
 const form = reactive({
   name: props.existingApp?.name || '',
   functionality: props.existingApp?.functionality || '',
   app_url: props.existingApp?.app_url || '',
   github_url: props.existingApp?.github_url || '',
+  app_group: props.existingApp?.app_group || 'internal',
+  tags: props.existingApp?.tags ? [...props.existingApp.tags] : [],
 });
 
 const logoFile = ref(null);
@@ -165,6 +207,37 @@ function handleSubmit() {
   font-size: 0.75rem;
   color: #52525B;
   margin: 0;
+}
+
+.group-picker {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.group-btn {
+  flex: 1;
+  padding: 0.35rem 0;
+  border-radius: 7px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgb(113 113 122);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.group-btn:hover {
+  color: rgb(212 212 216);
+}
+
+.group-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgb(244 244 245);
 }
 
 .input-error {

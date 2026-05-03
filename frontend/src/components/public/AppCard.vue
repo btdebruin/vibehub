@@ -1,14 +1,17 @@
 <template>
-  <div class="app-card p-5 flex items-center gap-4 group" @click="openApp">
-    <AppLogo :logo-path="app.logo_path" :name="app.name" :size="64" />
+  <div class="app-card p-2 flex items-center gap-4 group" @click="openApp">
+    <AppLogo :logo-path="app.logo_path" :name="app.name" :size="36" />
 
     <div class="flex-1 min-w-0">
-      <div class="flex items-start justify-between gap-2">
-        <div class="min-w-0">
-          <h2 class="text-lg font-semibold text-zinc-100 truncate">{{ app.name }}</h2>
-          <p class="text-sm text-zinc-400 mt-0.5 truncate">{{ app.functionality }}</p>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-baseline justify-between gap-4 flex-1 min-w-0">
+          <h2 class="text-base font-semibold text-zinc-100 flex-shrink-0">{{ app.name }}</h2>
+          <p class="text-sm text-zinc-400">{{ app.functionality }}</p>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
+          <div v-if="app.tags?.length" class="flex items-center gap-1">
+            <span v-for="tag in app.tags" :key="tag" class="tag-chip">{{ tag }}</span>
+          </div>
           <a
             v-if="app.github_url"
             :href="app.github_url"
@@ -41,3 +44,16 @@ function openApp() {
   window.open(props.app.app_url, '_blank', 'noopener,noreferrer');
 }
 </script>
+
+<style scoped>
+.tag-chip {
+  padding: 0.1rem 0.45rem;
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: rgb(148 153 255);
+  white-space: nowrap;
+}
+</style>
