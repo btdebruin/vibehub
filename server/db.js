@@ -53,4 +53,10 @@ try {
   // column already exists
 }
 
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN port INTEGER`);
+} catch {
+  // column already exists
+}
+
 export default db;

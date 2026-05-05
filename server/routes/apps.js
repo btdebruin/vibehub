@@ -23,7 +23,7 @@ router.get('/apps', (req, res) => {
 
 // POST /api/admin/apps — create app (multipart, optional logo)
 router.post('/admin/apps', upload.single('logo'), (req, res) => {
-  const { name, functionality, app_url, github_url, app_group, tags } = req.body;
+  const { name, functionality, app_url, github_url, app_group, tags, port } = req.body;
 
   if (!name || !functionality || !app_url) {
     if (req.file) {
@@ -38,11 +38,12 @@ router.post('/admin/apps', upload.single('logo'), (req, res) => {
   const logo_path = req.file ? req.file.filename : null;
   const group = ['internal', '9to5', 'external'].includes(app_group) ? app_group : 'internal';
   const tagsJson = JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'));
+  const portVal = port ? parseInt(port, 10) : null;
 
   db.prepare(`
-    INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order, app_group, tags)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson);
+    INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order, app_group, tags, port)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson, portVal);
 
   const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   res.status(201).json(parseApp(app));
@@ -68,7 +69,7 @@ router.put('/admin/apps/order', (req, res) => {
 // PUT /api/admin/apps/:id — update app metadata
 router.put('/admin/apps/:id', (req, res) => {
   const { id } = req.params;
-  const { name, functionality, app_url, github_url, app_group, tags } = req.body;
+  const { name, functionality, app_url, github_url, app_group, tags, port } = req.body;
 
   const existing = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'App not found' });
@@ -79,10 +80,11 @@ router.put('/admin/apps/:id', (req, res) => {
   const tagsJson = tags !== undefined
     ? JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'))
     : existing.tags;
+  const portVal = port !== undefined ? (port ? parseInt(port, 10) : null) : existing.port;
 
   db.prepare(`
     UPDATE apps SET
-      name = ?, functionality = ?, app_url = ?, github_url = ?, app_group = ?, tags = ?,
+      name = ?, functionality = ?, app_url = ?, github_url = ?, app_group = ?, tags = ?, port = ?,
       updated_at = datetime('now')
     WHERE id = ?
   `).run(
@@ -92,6 +94,7 @@ router.put('/admin/apps/:id', (req, res) => {
     github_url !== undefined ? (github_url || null) : existing.github_url,
     group,
     tagsJson,
+    portVal,
     id,
   );
 

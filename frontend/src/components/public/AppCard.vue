@@ -9,7 +9,8 @@
           <p class="text-sm text-zinc-400 truncate">{{ app.functionality }}</p>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0 self-center">
-          <div v-if="app.tags?.length" class="hidden sm:flex items-center gap-1">
+          <div class="hidden sm:flex items-center gap-1">
+            <span v-if="app.port" class="port-chip">:{{ app.port }}</span>
             <span v-for="tag in app.tags" :key="tag" class="tag-chip">{{ tag }}</span>
           </div>
           <a
@@ -69,5 +70,17 @@ function openNotes() {
   border: 1px solid rgba(99, 102, 241, 0.3);
   color: rgb(148 153 255);
   white-space: nowrap;
+}
+
+.port-chip {
+  padding: 0.1rem 0.45rem;
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgb(113 113 122);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 </style>

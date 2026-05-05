@@ -52,6 +52,20 @@
       <p v-if="githubUrlError" class="error-msg">Please enter a valid URL (http/https)</p>
     </div>
 
+    <!-- Port -->
+    <div class="form-group">
+      <label class="form-label">Port <span class="label-optional">optional</span></label>
+      <input
+        v-model.number="form.port"
+        type="number"
+        class="form-input"
+        placeholder="3000"
+        min="1"
+        max="65535"
+      />
+      <p class="form-hint">Local port the app runs on</p>
+    </div>
+
     <!-- Tags -->
     <div class="form-group">
       <label class="form-label">Tags <span class="label-optional">optional</span></label>
@@ -143,6 +157,7 @@ const form = reactive({
   github_url: props.existingApp?.github_url || '',
   app_group: props.existingApp?.app_group || 'internal',
   tags: props.existingApp?.tags ? [...props.existingApp.tags] : [],
+  port: props.existingApp?.port || null,
 });
 
 const logoFile = ref(null);

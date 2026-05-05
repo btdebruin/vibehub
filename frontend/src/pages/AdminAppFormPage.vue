@@ -76,6 +76,7 @@ async function handleSubmit(formData, logoFile) {
       if (formData.github_url) fd.append('github_url', formData.github_url);
       fd.append('app_group', formData.app_group);
       fd.append('tags', JSON.stringify(formData.tags));
+      if (formData.port) fd.append('port', formData.port);
       if (logoFile) fd.append('logo', logoFile);
       await appsStore.createApp(fd);
       toastStore.show('App created!');
@@ -93,6 +94,7 @@ async function handleSubmit(formData, logoFile) {
         github_url: formData.github_url || null,
         app_group: formData.app_group,
         tags: formData.tags,
+        port: formData.port || null,
       });
 
       if (logoFile) {
