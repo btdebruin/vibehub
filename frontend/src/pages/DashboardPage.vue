@@ -2,22 +2,31 @@
   <div class="min-h-screen">
     <DashboardHeader />
 
-    <main class="dashboard-main">
-      <TagFilter v-model="activeTags" :tags="availableTags" />
+    <main class="dashboard-main" :class="{ 'is-grid': isGrid }">
+      <TagFilter v-model="activeTags" :tags="availableTags" class="full-row" />
 
       <template v-if="appsStore.loading">
-        <div v-for="i in 4" :key="i" class="skeleton-card" />
+        <div
+          v-for="i in (isGrid ? 8 : 4)"
+          :key="i"
+          :class="isGrid ? 'skeleton-tile' : 'skeleton-card'"
+        />
       </template>
       <ErrorBanner
         v-else-if="appsStore.error"
+        class="full-row"
         :message="`Could not load apps: ${appsStore.error}`"
         @retry="appsStore.fetchApps()"
       />
       <EmptyState
         v-else-if="!visibleApps.length"
+        class="full-row"
         :variant="emptyVariant"
         @clear-filter="activeTags = []"
       />
+      <template v-else-if="isGrid">
+        <AppGridItem v-for="app in visibleApps" :key="app.id" :app="app" />
+      </template>
       <template v-else>
         <AppCard v-for="app in visibleApps" :key="app.id" :app="app" />
       </template>
@@ -29,16 +38,21 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import DashboardHeader from '../components/public/DashboardHeader.vue';
 import AppCard from '../components/public/AppCard.vue';
+import AppGridItem from '../components/public/AppGridItem.vue';
 import EmptyState from '../components/public/EmptyState.vue';
 import ErrorBanner from '../components/shared/ErrorBanner.vue';
 import TagFilter from '../components/public/TagFilter.vue';
 import { useAppsStore } from '../stores/apps.js';
 import { useTabStore } from '../stores/tab.js';
 import { useStatusStore } from '../stores/status.js';
+import { useViewModeStore } from '../stores/viewMode.js';
 
 const appsStore = useAppsStore();
 const tabStore = useTabStore();
 const statusStore = useStatusStore();
+const viewModeStore = useViewModeStore();
+
+const isGrid = computed(() => viewModeStore.mode === 'grid');
 
 const activeTags = ref([]);
 
@@ -93,6 +107,33 @@ onUnmounted(() => {
     padding: 2rem 1.5rem;
     gap: 0.75rem;
   }
+}
+
+/* Launchpad-style grid */
+.dashboard-main.is-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.5rem;
+  align-items: start;
+}
+
+@media (min-width: 640px) {
+  .dashboard-main.is-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+.skeleton-tile {
+  height: 140px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-card {

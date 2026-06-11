@@ -12,6 +12,15 @@
 
       <div class="header-actions">
         <SearchTrigger />
+        <button
+          class="admin-toggle"
+          :title="viewModeStore.mode === 'grid' ? 'Switch to list view' : 'Switch to grid view'"
+          :aria-label="viewModeStore.mode === 'grid' ? 'Switch to list view' : 'Switch to grid view'"
+          @click="viewModeStore.toggle()"
+        >
+          <List v-if="viewModeStore.mode === 'grid'" :size="18" />
+          <LayoutGrid v-else :size="18" />
+        </button>
         <RouterLink to="/admin" class="admin-toggle" title="Admin">
           <Settings :size="18" />
         </RouterLink>
@@ -22,14 +31,16 @@
 
 <script setup>
 import { computed } from 'vue';
-import { Settings } from 'lucide-vue-next';
+import { Settings, List, LayoutGrid } from 'lucide-vue-next';
 import SearchTrigger from './SearchTrigger.vue';
 import SegmentedControl from './SegmentedControl.vue';
 import { useTabStore } from '../../stores/tab.js';
 import { useAppsStore } from '../../stores/apps.js';
+import { useViewModeStore } from '../../stores/viewMode.js';
 
 const tabStore = useTabStore();
 const appsStore = useAppsStore();
+const viewModeStore = useViewModeStore();
 
 const TABS = [
   { label: 'Internal', value: 'internal' },
@@ -131,6 +142,9 @@ const tabItems = computed(() =>
   transition: color 0.15s;
   padding: 0.375rem;
   border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .admin-toggle:hover {

@@ -35,7 +35,6 @@ const fallbackStyle = computed(() => {
     background: `linear-gradient(135deg, ${c1}, ${c2})`,
     width: props.size + 'px',
     height: props.size + 'px',
-    borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -63,5 +62,6 @@ const fallbackStyle = computed(() => {
 
 .logo-fallback {
   flex-shrink: 0;
+  border-radius: 12px;
 }
 </style>
