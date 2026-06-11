@@ -10,7 +10,7 @@
     @keydown.space.prevent="openApp"
   >
     <div class="icon-wrap">
-      <AppLogo :logo-path="app.logo_path" :name="app.name" :size="72" />
+      <AppLogo :logo-path="app.logo_path" :name="app.name" :size="iconSize" />
       <span
         v-if="status"
         class="status-dot"
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Github, NotebookPen } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
 import AppLogo from './AppLogo.vue';
@@ -51,6 +51,15 @@ import { useStatusStore } from '../../stores/status.js';
 
 const router = useRouter();
 const statusStore = useStatusStore();
+
+// AppLogo sizes via inline styles, so the breakpoint has to live in JS
+const lgQuery = window.matchMedia('(min-width: 1024px)');
+const isLg = ref(lgQuery.matches);
+const onLgChange = (e) => { isLg.value = e.matches; };
+onMounted(() => lgQuery.addEventListener('change', onLgChange));
+onUnmounted(() => lgQuery.removeEventListener('change', onLgChange));
+
+const iconSize = computed(() => (isLg.value ? 144 : 72));
 
 const props = defineProps({
   app: { type: Object, required: true },
@@ -122,6 +131,24 @@ function openNotes() {
 
 .status-dot.down {
   background: rgb(113 113 122);
+}
+
+@media (min-width: 1024px) {
+  .status-dot {
+    width: 16px;
+    height: 16px;
+    border-width: 3px;
+    bottom: 0;
+    right: 0;
+  }
+
+  .item-name {
+    font-size: 0.9375rem;
+  }
+
+  .item-port {
+    font-size: 0.8125rem;
+  }
 }
 
 .item-name {

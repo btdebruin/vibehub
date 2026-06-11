@@ -124,6 +124,17 @@ onUnmounted(() => {
   }
 }
 
+@media (min-width: 1024px) {
+  .dashboard-main.is-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+  }
+
+  .skeleton-tile {
+    height: 230px;
+  }
+}
+
 .full-row {
   grid-column: 1 / -1;
 }
