@@ -15,6 +15,10 @@
 
         <div class="save-status">
           <span v-if="saving" class="status-saving">Saving…</span>
+          <button v-else-if="saveError" type="button" class="status-error" @click="persist">
+            <AlertCircle :size="14" />
+            Save failed — retry
+          </button>
           <span v-else-if="saved" class="status-saved">
             <Check :size="14" />
             Saved
@@ -26,11 +30,17 @@
     <main class="notes-main">
       <div v-if="loading" class="skeleton-area" />
       <div v-else-if="!app" class="not-found">App not found.</div>
+      <ErrorBanner
+        v-else-if="loadError"
+        :message="`Could not load notes: ${loadError}`"
+        @retry="load"
+      />
       <textarea
         v-else
         ref="textareaRef"
         v-model="notes"
         class="notes-area"
+        :aria-label="`Notes for ${app.name}`"
         placeholder="Write your notes here…"
         @input="onInput"
       />
@@ -40,10 +50,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { ArrowLeft, Check } from 'lucide-vue-next';
+import { useRoute, onBeforeRouteLeave } from 'vue-router';
+import { ArrowLeft, Check, AlertCircle } from 'lucide-vue-next';
 import AppLogo from '../components/public/AppLogo.vue';
+import ErrorBanner from '../components/shared/ErrorBanner.vue';
 import { useAppsStore } from '../stores/apps.js';
+import { useDebounceFn } from '../composables/useDebounceFn.js';
 
 const route = useRoute();
 const appsStore = useAppsStore();
@@ -53,40 +65,56 @@ const notes = ref('');
 const loading = ref(true);
 const saving = ref(false);
 const saved = ref(false);
+const saveError = ref(false);
+const loadError = ref(null);
 const textareaRef = ref(null);
 
-let debounceTimer = null;
 let savedTimer = null;
 
-onMounted(async () => {
+async function load() {
   const id = route.params.id;
-  if (!appsStore.apps.length) await appsStore.fetchApps();
-  app.value = appsStore.getAppById(id) ?? null;
-
-  if (app.value) {
-    notes.value = await appsStore.fetchNotes(id);
+  loading.value = true;
+  loadError.value = null;
+  try {
+    if (!appsStore.apps.length) await appsStore.fetchApps();
+    app.value = appsStore.getAppById(id) ?? null;
+    if (app.value) {
+      notes.value = await appsStore.fetchNotes(id);
+    }
+  } catch (e) {
+    loadError.value = e.message;
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
-});
+}
 
-onUnmounted(() => {
-  clearTimeout(debounceTimer);
-  clearTimeout(savedTimer);
+onMounted(load);
+
+onUnmounted(() => clearTimeout(savedTimer));
+
+const debouncedPersist = useDebounceFn(persist, 800);
+
+// don't lose a pending edit on quick back-navigation
+onBeforeRouteLeave(() => {
+  debouncedPersist.flush();
 });
 
 function onInput() {
   saved.value = false;
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(persist, 800);
+  saveError.value = false;
+  debouncedPersist();
 }
 
 async function persist() {
   saving.value = true;
+  saveError.value = false;
   try {
     await appsStore.saveNotes(route.params.id, notes.value);
     saved.value = true;
     clearTimeout(savedTimer);
     savedTimer = setTimeout(() => { saved.value = false; }, 2500);
+  } catch {
+    saveError.value = true;
   } finally {
     saving.value = false;
   }
@@ -174,6 +202,24 @@ async function persist() {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.status-error {
+  color: rgb(252 165 165);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.status-error:hover {
+  color: rgb(254 202 202);
+  text-decoration: underline;
 }
 
 .notes-main {

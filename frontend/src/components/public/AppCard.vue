@@ -1,5 +1,13 @@
 <template>
-  <div class="app-card p-2 flex items-center gap-4 group" @click="openApp">
+  <div
+    class="app-card p-2 flex items-center gap-4 group"
+    role="link"
+    tabindex="0"
+    :aria-label="`Open ${app.name}`"
+    @click="openApp"
+    @keydown.enter="openApp"
+    @keydown.space.prevent="openApp"
+  >
     <AppLogo :logo-path="app.logo_path" :name="app.name" :size="36" />
 
     <div class="flex-1 min-w-0">
@@ -7,6 +15,10 @@
         <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-baseline sm:gap-4">
           <h2 class="text-base font-semibold text-zinc-100 flex-shrink-0">{{ app.name }}</h2>
           <p class="text-sm text-zinc-400 truncate">{{ app.functionality }}</p>
+          <div v-if="app.port || app.tags?.length" class="flex sm:hidden flex-wrap items-center gap-1 mt-1">
+            <span v-if="app.port" class="port-chip">:{{ app.port }}</span>
+            <span v-for="tag in app.tags" :key="tag" class="tag-chip">{{ tag }}</span>
+          </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0 self-center">
           <div class="hidden sm:flex items-center gap-1">
@@ -61,6 +73,11 @@ function openNotes() {
 </script>
 
 <style scoped>
+.app-card:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.7);
+  outline-offset: 2px;
+}
+
 .tag-chip {
   padding: 0.1rem 0.45rem;
   border-radius: 20px;

@@ -3,8 +3,10 @@
     <button
       v-for="item in items"
       :key="item.value"
+      type="button"
       class="seg-btn"
       :class="{ active: modelValue === item.value }"
+      :aria-pressed="modelValue === item.value"
       @click="$emit('update:modelValue', item.value)"
     >
       {{ item.label }}

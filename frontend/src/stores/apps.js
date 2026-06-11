@@ -34,37 +34,51 @@ export const useAppsStore = defineStore('apps', () => {
     }
   }
 
+  // The API returns the full app object on create/update, so mutations
+  // patch local state instead of refetching the entire list.
+  function replaceApp(app) {
+    const idx = apps.value.findIndex((a) => a.id === app.id);
+    if (idx === -1) {
+      apps.value.push(app);
+    } else {
+      apps.value[idx] = app;
+    }
+  }
+
   async function createApp(formData) {
     const app = await apiFetch('POST', '/api/admin/apps', formData, true);
-    await fetchApps();
+    apps.value.push(app);
     return app;
   }
 
   async function updateApp(id, data) {
     const app = await apiFetch('PUT', `/api/admin/apps/${id}`, data);
-    await fetchApps();
+    replaceApp(app);
     return app;
   }
 
   async function uploadLogo(id, formData) {
     const app = await apiFetch('PUT', `/api/admin/apps/${id}/logo`, formData, true);
-    await fetchApps();
+    replaceApp(app);
     return app;
   }
 
   async function deleteLogo(id) {
-    await apiFetch('DELETE', `/api/admin/apps/${id}/logo`);
-    await fetchApps();
+    const app = await apiFetch('DELETE', `/api/admin/apps/${id}/logo`);
+    replaceApp(app);
   }
 
   async function deleteApp(id) {
     await apiFetch('DELETE', `/api/admin/apps/${id}`);
-    await fetchApps();
+    apps.value = apps.value.filter((a) => a.id !== id);
   }
 
   async function reorderApps(ids) {
     await apiFetch('PUT', '/api/admin/apps/order', { ids });
-    await fetchApps();
+    const order = new Map(ids.map((id, i) => [id, i]));
+    apps.value = [...apps.value]
+      .map((a) => ({ ...a, display_order: order.has(a.id) ? order.get(a.id) : a.display_order }))
+      .sort((a, b) => a.display_order - b.display_order);
   }
 
   function getAppById(id) {

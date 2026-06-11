@@ -1,5 +1,5 @@
 <template>
-  <div class="palette-results">
+  <div id="palette-listbox" class="palette-results" role="listbox" aria-label="Apps">
     <div v-if="results.length === 0" class="palette-empty">
       No apps found
     </div>
@@ -8,9 +8,12 @@
       <PaletteItem
         v-for="(app, index) in results"
         :key="app.id"
+        :id="`palette-option-${index}`"
         :app="app"
         :active="index === selectedIndex"
         :data-index="index"
+        role="option"
+        :aria-selected="index === selectedIndex"
         @click="$emit('select', app)"
         @mouseenter="$emit('hover', index)"
       />

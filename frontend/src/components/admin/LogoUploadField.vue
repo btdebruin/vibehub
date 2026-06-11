@@ -36,8 +36,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { Upload, X } from 'lucide-vue-next';
+import { useToastStore } from '../../stores/toast.js';
 
 const props = defineProps({
   currentLogoPath: { type: String, default: null },
@@ -45,9 +46,17 @@ const props = defineProps({
 
 const emit = defineEmits(['change', 'remove']);
 
+const toastStore = useToastStore();
 const fileInput = ref(null);
 const preview = ref(null);
 const dragging = ref(false);
+
+function clearPreview() {
+  if (preview.value) URL.revokeObjectURL(preview.value);
+  preview.value = null;
+}
+
+onUnmounted(clearPreview);
 
 async function handleDrop(e) {
   dragging.value = false;
@@ -63,33 +72,46 @@ async function handleFileChange(e) {
 }
 
 async function processFile(file) {
-  const resized = await resizeImage(file, 256);
-  const url = URL.createObjectURL(resized);
-  preview.value = url;
-  emit('change', resized);
+  try {
+    const resized = await resizeImage(file, 256);
+    clearPreview();
+    preview.value = URL.createObjectURL(resized);
+    emit('change', resized);
+  } catch {
+    toastStore.show('Could not read image — is the file a valid image?', 'error');
+  }
 }
 
 async function resizeImage(file, maxSize) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(
-        (blob) => resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })),
-        'image/jpeg',
-        0.9,
-      );
-    };
-    img.src = URL.createObjectURL(file);
-  });
+  const src = URL.createObjectURL(file);
+  try {
+    return await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject(new Error('Image encoding failed'));
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+          },
+          'image/jpeg',
+          0.9,
+        );
+      };
+      img.onerror = () => reject(new Error('Image failed to load'));
+      img.src = src;
+    });
+  } finally {
+    URL.revokeObjectURL(src);
+  }
 }
 
 function removeLogo() {
-  preview.value = null;
+  clearPreview();
   if (fileInput.value) fileInput.value.value = '';
   emit('remove');
 }

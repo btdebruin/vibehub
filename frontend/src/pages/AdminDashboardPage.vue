@@ -13,6 +13,13 @@
       <div v-for="i in 3" :key="i" class="skeleton-row" />
     </template>
 
+    <!-- Load error -->
+    <ErrorBanner
+      v-else-if="appsStore.error"
+      :message="`Could not load apps: ${appsStore.error}`"
+      @retry="appsStore.fetchApps()"
+    />
+
     <!-- Empty state -->
     <div v-else-if="!appsStore.apps.length" class="empty-admin">
       <LayoutGrid :size="32" class="text-zinc-700 mb-3" />
@@ -46,6 +53,7 @@ import { Plus, LayoutGrid } from 'lucide-vue-next';
 import AdminLayout from '../components/admin/AdminLayout.vue';
 import AppList from '../components/admin/AppList.vue';
 import ConfirmDialog from '../components/shared/ConfirmDialog.vue';
+import ErrorBanner from '../components/shared/ErrorBanner.vue';
 import { useAppsStore } from '../stores/apps.js';
 import { useToastStore } from '../stores/toast.js';
 

@@ -6,6 +6,7 @@
       type="button"
       class="filter-chip"
       :class="{ active: modelValue.includes(tag) }"
+      :aria-pressed="modelValue.includes(tag)"
       @click="toggle(tag)"
     >
       {{ tag }}

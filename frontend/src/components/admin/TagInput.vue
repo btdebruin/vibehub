@@ -77,9 +77,11 @@ function onKey(e) {
   }
 }
 
+// Suggestion clicks use mousedown.prevent, which keeps focus on the input,
+// so blur only fires when leaving the field entirely — safe to hide directly.
 function onBlur() {
   focused.value = false;
-  setTimeout(() => { showDrop.value = false; }, 150);
+  showDrop.value = false;
   if (draft.value.trim()) add(draft.value);
 }
 </script>
@@ -158,6 +160,9 @@ function onBlur() {
   left: 0;
   z-index: 50;
   min-width: 140px;
+  max-width: calc(100vw - 2rem);
+  max-height: 200px;
+  overflow-y: auto;
   background: rgb(24 24 27);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;

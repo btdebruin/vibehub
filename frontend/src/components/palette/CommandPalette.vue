@@ -9,6 +9,7 @@
         <div class="palette-modal" @keydown="handleKeyDown">
           <PaletteInput
             :model-value="store.query"
+            :active-descendant="results.length ? `palette-option-${store.selectedIndex}` : null"
             @update:model-value="store.query = $event; store.selectedIndex = 0"
           />
 
@@ -30,9 +31,9 @@
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue';
-import Fuse from 'fuse.js';
 import { useCommandPaletteStore } from '../../stores/commandPalette.js';
 import { useAppsStore } from '../../stores/apps.js';
+import { useFuzzySearch } from '../../composables/useFuzzySearch.js';
 import PaletteInput from './PaletteInput.vue';
 import PaletteResults from './PaletteResults.vue';
 import PaletteFooter from './PaletteFooter.vue';
@@ -41,22 +42,10 @@ const store = useCommandPaletteStore();
 const appsStore = useAppsStore();
 const listRef = ref(null);
 
-const fuse = computed(
-  () =>
-    new Fuse(appsStore.apps, {
-      keys: [
-        { name: 'name', weight: 2 },
-        { name: 'functionality', weight: 1 },
-      ],
-      threshold: 0.4,
-      includeScore: true,
-    }),
+const { results } = useFuzzySearch(
+  computed(() => appsStore.apps),
+  computed(() => store.query),
 );
-
-const results = computed(() => {
-  if (!store.query.trim()) return appsStore.apps;
-  return fuse.value.search(store.query).map((r) => r.item);
-});
 
 watch(
   () => store.isOpen,
@@ -67,14 +56,20 @@ watch(
   },
 );
 
+// keep selection valid when results shrink (e.g. while typing)
+watch(results, (list) => {
+  if (store.selectedIndex >= list.length) store.selectedIndex = 0;
+});
+
 function handleKeyDown(e) {
+  const count = results.value.length;
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    store.selectedIndex = Math.min(store.selectedIndex + 1, results.value.length - 1);
+    if (count) store.selectedIndex = (store.selectedIndex + 1) % count;
     scrollToSelected();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    store.selectedIndex = Math.max(store.selectedIndex - 1, 0);
+    if (count) store.selectedIndex = (store.selectedIndex - 1 + count) % count;
     scrollToSelected();
   } else if (e.key === 'Enter') {
     e.preventDefault();

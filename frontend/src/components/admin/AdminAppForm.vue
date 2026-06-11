@@ -31,11 +31,13 @@
         type="url"
         class="form-input"
         :class="{ 'input-error': urlError }"
+        :aria-invalid="urlError || undefined"
         placeholder="https://soundboard.home"
         required
-        @blur="validateUrl('app_url')"
+        @blur="touched.app_url = true; validateUrl('app_url')"
+        @input="touched.app_url && validateUrl('app_url')"
       />
-      <p v-if="urlError" class="error-msg">Please enter a valid URL (http/https)</p>
+      <p v-if="urlError" class="error-msg" role="alert">Please enter a valid URL (http/https)</p>
     </div>
 
     <!-- GitHub URL -->
@@ -46,10 +48,12 @@
         type="url"
         class="form-input"
         :class="{ 'input-error': githubUrlError }"
+        :aria-invalid="githubUrlError || undefined"
         placeholder="https://github.com/you/soundboard"
-        @blur="validateUrl('github_url')"
+        @blur="touched.github_url = true; validateUrl('github_url')"
+        @input="touched.github_url && validateUrl('github_url')"
       />
-      <p v-if="githubUrlError" class="error-msg">Please enter a valid URL (http/https)</p>
+      <p v-if="githubUrlError" class="error-msg" role="alert">Please enter a valid URL (http/https)</p>
     </div>
 
     <!-- Port -->
@@ -163,6 +167,9 @@ const form = reactive({
 const logoFile = ref(null);
 const urlError = ref(false);
 const githubUrlError = ref(false);
+// validate-on-input only after the field has been blurred once,
+// so users aren't shown errors mid-typing on first entry
+const touched = reactive({ app_url: false, github_url: false });
 
 function isValidUrl(value) {
   if (!value) return true;

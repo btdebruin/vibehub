@@ -8,6 +8,11 @@
       <template v-if="appsStore.loading">
         <div v-for="i in 4" :key="i" class="skeleton-card" />
       </template>
+      <ErrorBanner
+        v-else-if="appsStore.error"
+        :message="`Could not load apps: ${appsStore.error}`"
+        @retry="appsStore.fetchApps()"
+      />
       <EmptyState v-else-if="!visibleApps.length" />
       <template v-else>
         <AppCard v-for="app in visibleApps" :key="app.id" :app="app" />
@@ -21,6 +26,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import DashboardHeader from '../components/public/DashboardHeader.vue';
 import AppCard from '../components/public/AppCard.vue';
 import EmptyState from '../components/public/EmptyState.vue';
+import ErrorBanner from '../components/shared/ErrorBanner.vue';
 import TagFilter from '../components/public/TagFilter.vue';
 import { useAppsStore } from '../stores/apps.js';
 import { useTabStore } from '../stores/tab.js';

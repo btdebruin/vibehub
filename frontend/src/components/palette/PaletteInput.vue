@@ -9,6 +9,11 @@
       class="palette-input"
       autocomplete="off"
       spellcheck="false"
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="palette-listbox"
+      aria-label="Search apps"
+      :aria-activedescendant="activeDescendant || undefined"
       @input="$emit('update:modelValue', $event.target.value)"
     />
   </div>
@@ -18,7 +23,10 @@
 import { ref, onMounted } from 'vue';
 import { Search } from 'lucide-vue-next';
 
-defineProps({ modelValue: { type: String, default: '' } });
+defineProps({
+  modelValue: { type: String, default: '' },
+  activeDescendant: { type: String, default: null },
+});
 defineEmits(['update:modelValue']);
 
 const inputRef = ref(null);

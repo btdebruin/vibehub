@@ -12,7 +12,13 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', '..', 'data'
 const router = Router();
 
 function parseApp(app) {
-  return { ...app, tags: JSON.parse(app.tags || '[]') };
+  const { is_external, ...rest } = app;
+  return { ...rest, tags: JSON.parse(app.tags || '[]') };
+}
+
+function parsePort(port) {
+  const n = parseInt(port, 10);
+  return Number.isInteger(n) && n >= 1 && n <= 65535 ? n : null;
 }
 
 // GET /api/apps — list all apps sorted by display_order
@@ -38,14 +44,14 @@ router.post('/admin/apps', upload.single('logo'), (req, res) => {
   const logo_path = req.file ? req.file.filename : null;
   const group = ['internal', '9to5', 'external'].includes(app_group) ? app_group : 'internal';
   const tagsJson = JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'));
-  const portVal = port ? parseInt(port, 10) : null;
+  const portVal = port ? parsePort(port) : null;
 
-  db.prepare(`
+  const app = db.prepare(`
     INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order, app_group, tags, port)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson, portVal);
+    RETURNING *
+  `).get(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson, portVal);
 
-  const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   res.status(201).json(parseApp(app));
 });
 
@@ -80,14 +86,15 @@ router.put('/admin/apps/:id', (req, res) => {
   const tagsJson = tags !== undefined
     ? JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'))
     : existing.tags;
-  const portVal = port !== undefined ? (port ? parseInt(port, 10) : null) : existing.port;
+  const portVal = port !== undefined ? (port ? parsePort(port) : null) : existing.port;
 
-  db.prepare(`
+  const app = db.prepare(`
     UPDATE apps SET
       name = ?, functionality = ?, app_url = ?, github_url = ?, app_group = ?, tags = ?, port = ?,
       updated_at = datetime('now')
     WHERE id = ?
-  `).run(
+    RETURNING *
+  `).get(
     name ?? existing.name,
     functionality ?? existing.functionality,
     app_url ?? existing.app_url,
@@ -98,7 +105,6 @@ router.put('/admin/apps/:id', (req, res) => {
     id,
   );
 
-  const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   res.json(parseApp(app));
 });
 
@@ -110,14 +116,15 @@ router.put('/admin/apps/:id/logo', upload.single('logo'), async (req, res) => {
   if (!existing) return res.status(404).json({ error: 'App not found' });
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
+  // Point the DB at the new file first; only then remove the old file,
+  // so a failed unlink can never leave the DB referencing a deleted logo.
+  const app = db.prepare(`UPDATE apps SET logo_path = ?, updated_at = datetime('now') WHERE id = ? RETURNING *`)
+    .get(req.file.filename, id);
+
   if (existing.logo_path) {
     await unlink(path.join(DATA_DIR, 'logos', existing.logo_path)).catch(() => {});
   }
 
-  db.prepare(`UPDATE apps SET logo_path = ?, updated_at = datetime('now') WHERE id = ?`)
-    .run(req.file.filename, id);
-
-  const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   res.json(parseApp(app));
 });
 
@@ -128,12 +135,12 @@ router.delete('/admin/apps/:id/logo', async (req, res) => {
 
   if (!existing) return res.status(404).json({ error: 'App not found' });
 
+  const app = db.prepare(`UPDATE apps SET logo_path = NULL, updated_at = datetime('now') WHERE id = ? RETURNING *`).get(id);
+
   if (existing.logo_path) {
     await unlink(path.join(DATA_DIR, 'logos', existing.logo_path)).catch(() => {});
   }
 
-  db.prepare(`UPDATE apps SET logo_path = NULL, updated_at = datetime('now') WHERE id = ?`).run(id);
-  const app = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   res.json(parseApp(app));
 });
 
@@ -162,11 +169,12 @@ router.delete('/admin/apps/:id', async (req, res) => {
 
   if (!existing) return res.status(404).json({ error: 'App not found' });
 
+  db.prepare('DELETE FROM apps WHERE id = ?').run(id);
+
   if (existing.logo_path) {
     await unlink(path.join(DATA_DIR, 'logos', existing.logo_path)).catch(() => {});
   }
 
-  db.prepare('DELETE FROM apps WHERE id = ?').run(id);
   res.json({ success: true });
 });
 

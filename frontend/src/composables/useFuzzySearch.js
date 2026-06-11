@@ -8,6 +8,7 @@ export function useFuzzySearch(items, query) {
         keys: [
           { name: 'name', weight: 2 },
           { name: 'functionality', weight: 1 },
+          { name: 'tags', weight: 1 },
         ],
         threshold: 0.4,
         includeScore: true,
