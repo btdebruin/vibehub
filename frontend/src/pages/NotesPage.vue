@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen">
+  <div class="notes-page">
     <header class="notes-header">
       <div class="notes-header-inner">
         <button class="back-btn" @click="$router.back()">
@@ -122,6 +122,13 @@ async function persist() {
 </script>
 
 <style scoped>
+/* dvh tracks the real visible viewport on mobile (collapsing browser chrome) */
+.notes-page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
 .notes-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(0, 0, 0, 0.2);
@@ -224,9 +231,11 @@ async function persist() {
 
 .notes-main {
   max-width: 1100px;
+  width: 100%;
   margin: 0 auto;
   padding: 1.5rem;
-  height: calc(100vh - 57px);
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }

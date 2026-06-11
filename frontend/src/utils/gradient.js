@@ -20,3 +20,10 @@ function hashName(name) {
 export function gradientFor(name) {
   return GRADIENTS[hashName(name) % GRADIENTS.length];
 }
+
+// "r g b" triplet of the gradient's first color, for use in CSS `rgb(var(--accent) / a)`.
+export function accentFor(name) {
+  const hex = gradientFor(name)[0];
+  const n = parseInt(hex.slice(1), 16);
+  return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
+}

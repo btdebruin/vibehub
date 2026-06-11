@@ -13,7 +13,11 @@
         :message="`Could not load apps: ${appsStore.error}`"
         @retry="appsStore.fetchApps()"
       />
-      <EmptyState v-else-if="!visibleApps.length" />
+      <EmptyState
+        v-else-if="!visibleApps.length"
+        :variant="emptyVariant"
+        @clear-filter="activeTags = []"
+      />
       <template v-else>
         <AppCard v-for="app in visibleApps" :key="app.id" :app="app" />
       </template>
@@ -22,7 +26,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import DashboardHeader from '../components/public/DashboardHeader.vue';
 import AppCard from '../components/public/AppCard.vue';
 import EmptyState from '../components/public/EmptyState.vue';
@@ -30,9 +34,11 @@ import ErrorBanner from '../components/shared/ErrorBanner.vue';
 import TagFilter from '../components/public/TagFilter.vue';
 import { useAppsStore } from '../stores/apps.js';
 import { useTabStore } from '../stores/tab.js';
+import { useStatusStore } from '../stores/status.js';
 
 const appsStore = useAppsStore();
 const tabStore = useTabStore();
+const statusStore = useStatusStore();
 
 const activeTags = ref([]);
 
@@ -56,8 +62,19 @@ const visibleApps = computed(() => {
   );
 });
 
+const emptyVariant = computed(() => {
+  if (activeTags.value.length) return 'filtered';
+  if (appsStore.apps.length) return 'tab';
+  return 'empty';
+});
+
 onMounted(() => {
   appsStore.fetchApps();
+  statusStore.startPolling();
+});
+
+onUnmounted(() => {
+  statusStore.stopPolling();
 });
 </script>
 
@@ -82,7 +99,7 @@ onMounted(() => {
   height: 90px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   animation: pulse 1.5s ease-in-out infinite;
 }
 

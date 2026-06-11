@@ -7,10 +7,7 @@
       </div>
 
       <div class="header-tabs">
-        <SegmentedControl
-          :items="[{ label: 'Internal', value: 'internal' }, { label: '9to5', value: '9to5' }, { label: 'External', value: 'external' }]"
-          v-model="tabStore.activeTab"
-        />
+        <SegmentedControl :items="tabItems" v-model="tabStore.activeTab" />
       </div>
 
       <div class="header-actions">
@@ -24,12 +21,28 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { Settings } from 'lucide-vue-next';
 import SearchTrigger from './SearchTrigger.vue';
 import SegmentedControl from './SegmentedControl.vue';
 import { useTabStore } from '../../stores/tab.js';
+import { useAppsStore } from '../../stores/apps.js';
 
 const tabStore = useTabStore();
+const appsStore = useAppsStore();
+
+const TABS = [
+  { label: 'Internal', value: 'internal' },
+  { label: '9to5', value: '9to5' },
+  { label: 'External', value: 'external' },
+];
+
+const tabItems = computed(() =>
+  TABS.map((t) => ({
+    ...t,
+    count: appsStore.apps.filter((a) => a.app_group === t.value).length,
+  }))
+);
 </script>
 
 <style scoped>

@@ -16,14 +16,14 @@
         <Pencil :size="15" />
       </RouterLink>
       <button class="btn-icon btn-icon-danger" title="Delete" @click="$emit('delete', app)">
-        <X :size="15" />
+        <Trash2 :size="15" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { GripVertical, Pencil, X } from 'lucide-vue-next';
+import { GripVertical, Pencil, Trash2 } from 'lucide-vue-next';
 import AppLogo from '../public/AppLogo.vue';
 
 defineProps({ app: { type: Object, required: true } });

@@ -178,4 +178,53 @@ router.delete('/admin/apps/:id', async (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/status — reachability of each app's URL, cached briefly
+const STATUS_TTL_MS = 30_000;
+const PING_TIMEOUT_MS = 3_000;
+let statusCache = { at: 0, data: null, pending: null };
+
+async function pingApp(app) {
+  try {
+    // any HTTP response (even 4xx/5xx) means something is listening
+    await fetch(app.app_url, {
+      method: 'HEAD',
+      redirect: 'follow',
+      signal: AbortSignal.timeout(PING_TIMEOUT_MS),
+    });
+    return [app.id, 'up'];
+  } catch {
+    return [app.id, 'down'];
+  }
+}
+
+async function checkAllApps() {
+  const apps = db.prepare('SELECT id, app_url FROM apps').all();
+  const results = await Promise.all(apps.map(pingApp));
+  return Object.fromEntries(results);
+}
+
+router.get('/status', async (req, res) => {
+  const now = Date.now();
+  if (statusCache.data && now - statusCache.at < STATUS_TTL_MS) {
+    return res.json(statusCache.data);
+  }
+  // coalesce concurrent requests into one sweep
+  if (!statusCache.pending) {
+    statusCache.pending = checkAllApps()
+      .then((data) => {
+        statusCache = { at: Date.now(), data, pending: null };
+        return data;
+      })
+      .catch((e) => {
+        statusCache.pending = null;
+        throw e;
+      });
+  }
+  try {
+    res.json(await statusCache.pending);
+  } catch {
+    res.status(500).json({ error: 'Status check failed' });
+  }
+});
+
 export default router;
