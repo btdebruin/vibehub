@@ -9,7 +9,11 @@
       @end="onDragEnd"
     >
       <template #item="{ element }">
-        <AdminAppRow :app="element" @delete="$emit('delete', element)" />
+        <AdminAppRow
+          :app="element"
+          @delete="$emit('delete', element)"
+          @toggle-visibility="$emit('toggle-visibility', element)"
+        />
       </template>
     </draggable>
   </div>
@@ -24,7 +28,7 @@ const props = defineProps({
   apps: { type: Array, required: true },
 });
 
-const emit = defineEmits(['reorder', 'delete']);
+const emit = defineEmits(['reorder', 'delete', 'toggle-visibility']);
 
 const localApps = ref([...props.apps]);
 

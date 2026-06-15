@@ -1,5 +1,5 @@
 <template>
-  <div class="app-row">
+  <div class="app-row" :class="{ 'is-hidden': app.is_visible === false }">
     <div class="drag-handle" title="Drag to reorder">
       <GripVertical :size="18" />
     </div>
@@ -18,6 +18,17 @@
     </div>
 
     <div class="app-row-actions">
+      <button
+        class="btn-icon"
+        :class="{ 'btn-icon-active': app.is_visible !== false }"
+        :title="app.is_visible === false ? 'Hidden — click to show' : 'Visible — click to hide'"
+        role="switch"
+        :aria-checked="app.is_visible !== false"
+        @click="$emit('toggle-visibility', app)"
+      >
+        <Eye v-if="app.is_visible !== false" :size="15" />
+        <EyeOff v-else :size="15" />
+      </button>
       <RouterLink :to="`/admin/apps/${app.id}`" class="btn-icon" title="Edit">
         <Pencil :size="15" />
       </RouterLink>
@@ -29,11 +40,11 @@
 </template>
 
 <script setup>
-import { GripVertical, Pencil, Trash2, EyeOff } from 'lucide-vue-next';
+import { GripVertical, Pencil, Trash2, Eye, EyeOff } from 'lucide-vue-next';
 import AppLogo from '../public/AppLogo.vue';
 
 defineProps({ app: { type: Object, required: true } });
-defineEmits(['delete']);
+defineEmits(['delete', 'toggle-visibility']);
 </script>
 
 <style scoped>
@@ -50,6 +61,12 @@ defineEmits(['delete']);
 
 .app-row:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+/* hidden apps read as muted in the overview */
+.app-row.is-hidden .app-row-info,
+.app-row.is-hidden :deep(.logo-container) {
+  opacity: 0.5;
 }
 
 .drag-handle {
@@ -135,6 +152,17 @@ defineEmits(['delete']);
 .btn-icon:hover {
   color: #F4F4F5;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-icon-active {
+  color: rgb(148 153 255);
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.btn-icon-active:hover {
+  color: rgb(165 169 255);
+  background: rgba(99, 102, 241, 0.22);
 }
 
 .btn-icon-danger:hover {

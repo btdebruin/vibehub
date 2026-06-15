@@ -33,6 +33,7 @@
       :apps="appsStore.apps"
       @reorder="handleReorder"
       @delete="handleDeleteIntent"
+      @toggle-visibility="handleToggleVisibility"
     />
 
     <!-- Confirm delete dialog -->
@@ -66,6 +67,15 @@ onMounted(() => appsStore.fetchApps());
 async function handleReorder(ids) {
   try {
     await appsStore.reorderApps(ids);
+  } catch (e) {
+    toastStore.show(e.message, 'error');
+  }
+}
+
+async function handleToggleVisibility(app) {
+  try {
+    await appsStore.updateApp(app.id, { is_visible: !app.is_visible });
+    toastStore.show(app.is_visible ? `"${app.name}" hidden` : `"${app.name}" shown`);
   } catch (e) {
     toastStore.show(e.message, 'error');
   }

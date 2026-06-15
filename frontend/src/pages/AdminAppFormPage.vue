@@ -77,7 +77,6 @@ async function handleSubmit(formData, logoFile) {
       fd.append('app_group', formData.app_group);
       fd.append('tags', JSON.stringify(formData.tags));
       if (formData.port) fd.append('port', formData.port);
-      fd.append('is_visible', formData.is_visible ? 'true' : 'false');
       if (logoFile) fd.append('logo', logoFile);
       await appsStore.createApp(fd);
       toastStore.show('App created!');
@@ -96,7 +95,6 @@ async function handleSubmit(formData, logoFile) {
         app_group: formData.app_group,
         tags: formData.tags,
         port: formData.port || null,
-        is_visible: formData.is_visible,
       });
 
       if (logoFile) {
