@@ -59,4 +59,11 @@ try {
   // column already exists
 }
 
+try {
+  // is_visible = 0 hides the app from the non-admin (public) pages
+  db.exec(`ALTER TABLE apps ADD COLUMN is_visible INTEGER NOT NULL DEFAULT 1`);
+} catch {
+  // column already exists
+}
+
 export default db;

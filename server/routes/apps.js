@@ -13,12 +13,18 @@ const router = Router();
 
 function parseApp(app) {
   const { is_external, ...rest } = app;
-  return { ...rest, tags: JSON.parse(app.tags || '[]') };
+  return { ...rest, tags: JSON.parse(app.tags || '[]'), is_visible: !!app.is_visible };
 }
 
 function parsePort(port) {
   const n = parseInt(port, 10);
   return Number.isInteger(n) && n >= 1 && n <= 65535 ? n : null;
+}
+
+// Accepts JSON booleans as well as the string forms multipart form-data sends.
+function parseBool(value, fallback) {
+  if (value === undefined || value === null || value === '') return fallback;
+  return value === true || value === 'true' || value === '1' || value === 1;
 }
 
 // GET /api/apps — list all apps sorted by display_order
@@ -29,7 +35,7 @@ router.get('/apps', (req, res) => {
 
 // POST /api/admin/apps — create app (multipart, optional logo)
 router.post('/admin/apps', upload.single('logo'), (req, res) => {
-  const { name, functionality, app_url, github_url, app_group, tags, port } = req.body;
+  const { name, functionality, app_url, github_url, app_group, tags, port, is_visible } = req.body;
 
   if (!name || !functionality || !app_url) {
     if (req.file) {
@@ -45,12 +51,13 @@ router.post('/admin/apps', upload.single('logo'), (req, res) => {
   const group = ['internal', '9to5', 'external'].includes(app_group) ? app_group : 'internal';
   const tagsJson = JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'));
   const portVal = port ? parsePort(port) : null;
+  const visibleVal = parseBool(is_visible, true) ? 1 : 0;
 
   const app = db.prepare(`
-    INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order, app_group, tags, port)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO apps (id, name, functionality, app_url, github_url, logo_path, display_order, app_group, tags, port, is_visible)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `).get(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson, portVal);
+  `).get(id, name, functionality, app_url, github_url || null, logo_path, display_order, group, tagsJson, portVal, visibleVal);
 
   res.status(201).json(parseApp(app));
 });
@@ -75,7 +82,7 @@ router.put('/admin/apps/order', (req, res) => {
 // PUT /api/admin/apps/:id — update app metadata
 router.put('/admin/apps/:id', (req, res) => {
   const { id } = req.params;
-  const { name, functionality, app_url, github_url, app_group, tags, port } = req.body;
+  const { name, functionality, app_url, github_url, app_group, tags, port, is_visible } = req.body;
 
   const existing = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
   if (!existing) return res.status(404).json({ error: 'App not found' });
@@ -87,10 +94,11 @@ router.put('/admin/apps/:id', (req, res) => {
     ? JSON.stringify(Array.isArray(tags) ? tags : JSON.parse(tags || '[]'))
     : existing.tags;
   const portVal = port !== undefined ? (port ? parsePort(port) : null) : existing.port;
+  const visibleVal = is_visible !== undefined ? (parseBool(is_visible, true) ? 1 : 0) : existing.is_visible;
 
   const app = db.prepare(`
     UPDATE apps SET
-      name = ?, functionality = ?, app_url = ?, github_url = ?, app_group = ?, tags = ?, port = ?,
+      name = ?, functionality = ?, app_url = ?, github_url = ?, app_group = ?, tags = ?, port = ?, is_visible = ?,
       updated_at = datetime('now')
     WHERE id = ?
     RETURNING *
@@ -102,6 +110,7 @@ router.put('/admin/apps/:id', (req, res) => {
     group,
     tagsJson,
     portVal,
+    visibleVal,
     id,
   );
 

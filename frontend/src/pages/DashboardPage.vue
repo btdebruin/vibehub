@@ -73,7 +73,7 @@ const activeTags = ref([]);
 watch(() => tabStore.activeTab, () => { activeTags.value = []; });
 
 const tabApps = computed(() =>
-  appsStore.apps.filter((a) => a.app_group === tabStore.activeTab)
+  appsStore.visibleApps.filter((a) => a.app_group === tabStore.activeTab)
 );
 
 const availableTags = computed(() => {
@@ -105,7 +105,7 @@ const visibleApps = computed(() => {
 
 const emptyVariant = computed(() => {
   if (activeTags.value.length) return 'filtered';
-  if (appsStore.apps.length) return 'tab';
+  if (appsStore.visibleApps.length) return 'tab';
   return 'empty';
 });
 

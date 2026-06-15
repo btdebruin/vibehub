@@ -7,7 +7,13 @@
     <AppLogo :logo-path="app.logo_path" :name="app.name" :size="40" />
 
     <div class="app-row-info">
-      <span class="app-row-name">{{ app.name }}</span>
+      <span class="app-row-name">
+        {{ app.name }}
+        <span v-if="app.is_visible === false" class="hidden-badge" title="Hidden from the dashboard">
+          <EyeOff :size="11" />
+          Hidden
+        </span>
+      </span>
       <span class="app-row-func">{{ app.functionality }}</span>
     </div>
 
@@ -23,7 +29,7 @@
 </template>
 
 <script setup>
-import { GripVertical, Pencil, Trash2 } from 'lucide-vue-next';
+import { GripVertical, Pencil, Trash2, EyeOff } from 'lucide-vue-next';
 import AppLogo from '../public/AppLogo.vue';
 
 defineProps({ app: { type: Object, required: true } });
@@ -78,6 +84,23 @@ defineEmits(['delete']);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hidden-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #A1A1AA;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .app-row-func {

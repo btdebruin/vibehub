@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 async function apiFetch(method, url, body, isFormData = false) {
   const options = {
@@ -21,6 +21,9 @@ export const useAppsStore = defineStore('apps', () => {
   const apps = ref([]);
   const loading = ref(false);
   const error = ref(null);
+
+  // Apps shown on the non-admin (public) pages — admins toggle visibility per app.
+  const visibleApps = computed(() => apps.value.filter((a) => a.is_visible !== false));
 
   async function fetchApps() {
     loading.value = true;
@@ -96,6 +99,7 @@ export const useAppsStore = defineStore('apps', () => {
 
   return {
     apps,
+    visibleApps,
     loading,
     error,
     fetchApps,

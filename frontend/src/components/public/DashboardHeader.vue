@@ -51,7 +51,7 @@ const TABS = [
 const tabItems = computed(() =>
   TABS.map((t) => ({
     ...t,
-    count: appsStore.apps.filter((a) => a.app_group === t.value).length,
+    count: appsStore.visibleApps.filter((a) => a.app_group === t.value).length,
   }))
 );
 </script>

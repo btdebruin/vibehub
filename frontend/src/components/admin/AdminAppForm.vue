@@ -94,6 +94,33 @@
       </div>
     </div>
 
+    <!-- Visibility -->
+    <div class="form-group">
+      <label class="form-label">Visibility</label>
+      <button
+        type="button"
+        class="visibility-toggle"
+        :class="{ hidden: !form.is_visible }"
+        role="switch"
+        :aria-checked="form.is_visible"
+        @click="form.is_visible = !form.is_visible"
+      >
+        <span class="visibility-icon">
+          <Eye v-if="form.is_visible" :size="16" />
+          <EyeOff v-else :size="16" />
+        </span>
+        <span class="visibility-text">
+          <span class="visibility-title">{{ form.is_visible ? 'Visible' : 'Hidden' }}</span>
+          <span class="visibility-desc">
+            {{ form.is_visible ? 'Shown on the dashboard' : 'Hidden from the dashboard & search' }}
+          </span>
+        </span>
+        <span class="switch" :class="{ on: form.is_visible }">
+          <span class="switch-knob" />
+        </span>
+      </button>
+    </div>
+
     <!-- Logo -->
     <div class="form-group">
       <LogoUploadField
@@ -128,7 +155,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { Trash2 } from 'lucide-vue-next';
+import { Trash2, Eye, EyeOff } from 'lucide-vue-next';
 import LogoUploadField from './LogoUploadField.vue';
 import TagInput from './TagInput.vue';
 import { useAppsStore } from '../../stores/apps.js';
@@ -162,6 +189,7 @@ const form = reactive({
   app_group: props.existingApp?.app_group || 'internal',
   tags: props.existingApp?.tags ? [...props.existingApp.tags] : [],
   port: props.existingApp?.port || null,
+  is_visible: props.existingApp ? props.existingApp.is_visible !== false : true,
 });
 
 const logoFile = ref(null);
@@ -260,6 +288,90 @@ function handleSubmit() {
 .group-btn.active {
   background: rgba(255, 255, 255, 0.1);
   color: rgb(244 244 245);
+}
+
+.visibility-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.visibility-toggle:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.visibility-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.15);
+  color: rgb(148 153 255);
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.visibility-toggle.hidden .visibility-icon {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgb(113 113 122);
+}
+
+.visibility-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.visibility-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(228 228 231);
+}
+
+.visibility-desc {
+  font-size: 0.75rem;
+  color: #52525B;
+}
+
+.switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.switch.on {
+  background: rgb(99 102 241);
+}
+
+.switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease-out;
+}
+
+.switch.on .switch-knob {
+  transform: translateX(16px);
 }
 
 .input-error {

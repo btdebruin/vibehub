@@ -43,7 +43,7 @@ const appsStore = useAppsStore();
 const listRef = ref(null);
 
 const { results } = useFuzzySearch(
-  computed(() => appsStore.apps),
+  computed(() => appsStore.visibleApps),
   computed(() => store.query),
 );
 
