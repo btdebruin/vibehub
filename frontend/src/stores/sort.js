@@ -6,7 +6,7 @@ const MODES = ['name', 'port'];
 
 export const useSortStore = defineStore('sort', () => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  const mode = ref(MODES.includes(stored) ? stored : 'name');
+  const mode = ref(MODES.includes(stored) ? stored : 'port');
 
   watch(mode, (m) => localStorage.setItem(STORAGE_KEY, m));
 
