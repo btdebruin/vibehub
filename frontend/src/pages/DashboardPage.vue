@@ -5,6 +5,11 @@
     <main class="dashboard-main" :class="{ 'is-grid': isGrid }">
       <TagFilter v-model="activeTags" :tags="availableTags" class="full-row" />
 
+      <div class="sort-bar full-row">
+        <span class="sort-label">Sort</span>
+        <SegmentedControl v-model="sortStore.mode" :items="sortOptions" />
+      </div>
+
       <template v-if="appsStore.loading">
         <div
           v-for="i in (isGrid ? 8 : 4)"
@@ -42,15 +47,23 @@ import AppGridItem from '../components/public/AppGridItem.vue';
 import EmptyState from '../components/public/EmptyState.vue';
 import ErrorBanner from '../components/shared/ErrorBanner.vue';
 import TagFilter from '../components/public/TagFilter.vue';
+import SegmentedControl from '../components/public/SegmentedControl.vue';
 import { useAppsStore } from '../stores/apps.js';
 import { useTabStore } from '../stores/tab.js';
 import { useStatusStore } from '../stores/status.js';
 import { useViewModeStore } from '../stores/viewMode.js';
+import { useSortStore } from '../stores/sort.js';
 
 const appsStore = useAppsStore();
 const tabStore = useTabStore();
 const statusStore = useStatusStore();
 const viewModeStore = useViewModeStore();
+const sortStore = useSortStore();
+
+const sortOptions = [
+  { label: 'Alphabetical', value: 'name' },
+  { label: 'Port', value: 'port' },
+];
 
 const isGrid = computed(() => viewModeStore.mode === 'grid');
 
@@ -69,9 +82,23 @@ const availableTags = computed(() => {
   return [...all].sort();
 });
 
+const sortedApps = computed(() => {
+  const list = [...tabApps.value];
+  if (sortStore.mode === 'port') {
+    return list.sort((a, b) => {
+      // apps without a port sort to the end
+      const ap = a.port ?? Infinity;
+      const bp = b.port ?? Infinity;
+      if (ap !== bp) return ap - bp;
+      return a.name.localeCompare(b.name);
+    });
+  }
+  return list.sort((a, b) => a.name.localeCompare(b.name));
+});
+
 const visibleApps = computed(() => {
-  if (!activeTags.value.length) return tabApps.value;
-  return tabApps.value.filter((a) =>
+  if (!activeTags.value.length) return sortedApps.value;
+  return sortedApps.value.filter((a) =>
     activeTags.value.some((t) => (a.tags || []).includes(t))
   );
 });
@@ -137,6 +164,21 @@ onUnmounted(() => {
 
 .full-row {
   grid-column: 1 / -1;
+}
+
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-bottom: 0.25rem;
+}
+
+.sort-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(113 113 122);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .skeleton-tile {
